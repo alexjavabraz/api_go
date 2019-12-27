@@ -67,6 +67,22 @@ func CreateMovieEndPoint(w http.ResponseWriter, r *http.Request) {
 	respondWithJson(w, http.StatusCreated, movie)
 }
 
+func ListAllEndPoint(w http.ResponseWriter, r *http.Request) {
+	list, err := dao.FindAll()
+
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if list == nil {
+		respondWithJson(w, http.StatusNotFound, list)
+		return
+	}
+
+	respondWithJson(w, http.StatusOK, list)
+}
+
 func CreateMovieEndPointStandalone(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	var movie Card
@@ -150,16 +166,6 @@ func init() {
 
 // Define HTTP request routes
 
-func mainx() {
-	r := mux.NewRouter()
-	r.HandleFunc("/externalCode/{id}", FindCardsByExternalCodeEndPoint).Methods("GET")
-	r.HandleFunc("/card/{id}", FindCardsByIdEndPoint).Methods("GET")
-	r.HandleFunc("/add", CreateMovieEndPointStandalone).Methods("GET")
-	if err := http.ListenAndServe(":8080", r); err != nil {
-		log.Fatal(err)
-	}
-}
-
 func FindCardsByIdEndPoint2(ctx *fasthttp.RequestCtx) {
 	movie, err := dao.FindCartao()
 	if err != nil {
@@ -181,11 +187,24 @@ func FindCardsByIdEndPoint3(ctx *fasthttp.RequestCtx) {
 }
 
 func main() {
+	r := mux.NewRouter()
+	r.HandleFunc("/externalCode/{id}", FindCardsByExternalCodeEndPoint).Methods("GET")
+	r.HandleFunc("/card/{id}", FindCardsByIdEndPoint).Methods("GET")
+	r.HandleFunc("/add", CreateMovieEndPointStandalone).Methods("GET")
+	r.HandleFunc("/", ListAllEndPoint).Methods("GET")
+	if err := http.ListenAndServe(":8080", r); err != nil {
+		log.Fatal(err)
+	}
+}
 
-	ln, err := reuseport.Listen("tcp4", "0.0.0.0:8080")
+func mainx() {
+
+	ln, err := reuseport.Listen("tcp", "0.0.0.0:8000")
 	if err != nil {
 		log.Fatalf("error in reuseport listener: %s", err)
 	}
+
+	defer ln.Close()
 
 	r := router.New()
 	r.GET("/card/10", FindCardsByIdEndPoint2)

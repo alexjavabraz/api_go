@@ -4,15 +4,12 @@ import (
 	"log"
 
 	. "../models"
-
 	mgo "gopkg.in/mgo.v2"
-
 	"gopkg.in/mgo.v2/bson"
 )
 
 type MoviesDAO struct {
-	Server string
-
+	Server   string
 	Database string
 }
 
